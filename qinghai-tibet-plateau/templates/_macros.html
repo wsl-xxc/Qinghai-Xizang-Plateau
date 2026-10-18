@@ -7,7 +7,7 @@
     <div class="card-body d-flex flex-column">
       <h6 class="card-title">
         <a href="{{ url_for('article.detail', article_id=a.article_id) }}"
-           class="text-decoration-none text-dark stretched-link-title">{{ a.title }}</a>
+           class="text-decoration-none text-dark">{{ a.title }}</a>
       </h6>
       {% if a.summary %}
       <p class="card-text text-muted small flex-grow-1">

@@ -18,7 +18,7 @@
           <option value="">全部</option>
           {% for k in keywords %}
           <option value="{{ k.keyword_id }}"
-                  {% if request.args.get('keyword_id', type=int) == k.keyword_id %}selected{% endif %}>
+                  {% if request.args.get('keyword_id') == k.keyword_id|string %}selected{% endif %}>
             {{ k.keyword_name }}
           </option>
           {% endfor %}
@@ -30,7 +30,7 @@
           <option value="">全部</option>
           {% for t in topics %}
           <option value="{{ t.topic_id }}"
-                  {% if request.args.get('topic_id', type=int) == t.topic_id %}selected{% endif %}>
+                  {% if request.args.get('topic_id') == t.topic_id|string %}selected{% endif %}>
             {{ t.topic_name }}
           </option>
           {% endfor %}
@@ -42,7 +42,7 @@
           <option value="">全部</option>
           {% for s in sources %}
           <option value="{{ s.source_id }}"
-                  {% if request.args.get('source_id', type=int) == s.source_id %}selected{% endif %}>
+                  {% if request.args.get('source_id') == s.source_id|string %}selected{% endif %}>
             {{ s.source_name }}
           </option>
           {% endfor %}

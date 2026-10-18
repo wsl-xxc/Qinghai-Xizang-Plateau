@@ -24,7 +24,7 @@
 
 ### 1. 准备数据库
 
-确保 MySQL 中已建好名为 `青藏高原` 的数据库并导入数据（建库脚本与数据导入见课程设计文档）。
+确保 MySQL 中已建好名为 `qinghai_tibet_eco` 的数据库并导入数据。
 
 ### 2. 安装依赖
 
@@ -37,7 +37,7 @@ pip install -r requirements.txt
 复制 `.env.example` 为 `.env`，填写 MySQL 用户名和密码：
 
 ```bash
-cp .env.example .env
+copy .env.example .env
 ```
 
 ### 4. 启动
@@ -63,7 +63,9 @@ qinghai-tibet-plateau/
 │   ├── source.py       # 来源机构管理
 │   └── stats.py        # 统计可视化
 ├── templates/          # Jinja2 模板（Bootstrap 5）
-└── static/css/         # 自定义样式
+└── static/
+    ├── css/            # 自定义样式
+    └── lib/            # 本地依赖库（Bootstrap、ECharts，避免 CDN 被墙）
 ```
 
 ## 技术说明
@@ -71,7 +73,7 @@ qinghai-tibet-plateau/
 - 数据库访问使用 PyMySQL 原生 SQL，组合检索动态拼接 WHERE 条件，全部参数化防注入。
 - 文章配图仅存 URL 不入库，前端 `<img>` 直接引用并带 `onerror` 兜底。
 - 密码使用 Werkzeug `pbkdf2:sha256` 哈希存储，适配 `password_hash VARCHAR(128)` 字段长度。
-- 图表使用 ECharts 5（CDN 引入），关键词云使用 echarts-wordcloud 插件。
+- Bootstrap 与 ECharts 已下载到 `static/lib/`，无需联网即可使用。
 
 ## 小组成员
 

@@ -60,15 +60,14 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+<script src="{{ url_for('static', filename='lib/echarts.min.js') }}"></script>
+<script src="{{ url_for('static', filename='lib/echarts-wordcloud.min.js') }}"></script>
 <script>
 const byYear = {{ by_year | safe }};
 const bySource = {{ by_source | safe }};
 const byTopic = {{ by_topic | safe }};
 const kwData = {{ keywords | safe }};
 
-// 年度发文量：柱状 + 折线
 echarts.init(document.getElementById('yearChart')).setOption({
   tooltip: { trigger: 'axis' },
   xAxis: { type: 'category', data: byYear.map(d => d.y) },
@@ -79,7 +78,6 @@ echarts.init(document.getElementById('yearChart')).setOption({
   ]
 });
 
-// 来源占比：玫瑰图
 echarts.init(document.getElementById('sourceChart')).setOption({
   tooltip: { trigger: 'item' },
   series: [{
@@ -89,7 +87,6 @@ echarts.init(document.getElementById('sourceChart')).setOption({
   }]
 });
 
-// 专题分布：饼图
 echarts.init(document.getElementById('topicChart')).setOption({
   tooltip: { trigger: 'item' },
   legend: { orient: 'vertical', right: 0, top: 'middle', textStyle: { fontSize: 11 } },
@@ -99,7 +96,6 @@ echarts.init(document.getElementById('topicChart')).setOption({
   }]
 });
 
-// 关键词云（插件加载失败时退化为条形图）
 const cloudEl = document.getElementById('cloudChart');
 try {
   echarts.init(cloudEl).setOption({
@@ -114,7 +110,6 @@ try {
   cloudEl.innerHTML = '<div class="text-muted small">词云组件加载失败，请参考下方热度条形图</div>';
 }
 
-// 关键词热度 TOP20：横向条形图
 const top20 = kwData.slice(0, 20).reverse();
 echarts.init(document.getElementById('kwChart')).setOption({
   tooltip: {},
