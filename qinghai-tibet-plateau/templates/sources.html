@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}来源机构 - 青藏高原生态保护科普资源数据管理系统{% endblock %}
+{% block content %}
+<h4 class="mb-3">来源机构管理</h4>
+
+{% if session.get('user_id') %}
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form method="post" action="{{ url_for('source.add_source') }}" class="row g-2">
+      <div class="col-md-5">
+        <input name="source_name" class="form-control" placeholder="来源机构名称" required>
+      </div>
+      <div class="col-md-4">
+        <input name="source_type" class="form-control" placeholder="类型（默认：科普机构）">
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-success w-100">添加机构</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-info">登录后可添加、编辑、删除来源机构。</div>
+{% endif %}
+
+<div class="card shadow-sm">
+  <table class="table table-hover align-middle mb-0">
+    <thead class="table-light">
+      <tr><th>#</th><th>来源名称</th><th>类型</th><th>发文量</th><th class="text-end">操作</th></tr>
+    </thead>
+    <tbody>
+      {% for s in sources %}
+      <tr>
+        <td>{{ s.source_id }}</td>
+        <td>
+          <a href="{{ url_for('article.search', source_id=s.source_id) }}"
+             class="text-decoration-none">{{ s.source_name }}</a>
+        </td>
+        <td>{{ s.source_type }}</td>
+        <td><span class="badge text-bg-success">{{ s.article_count }}</span></td>
+        <td class="text-end">
+          {% if session.get('user_id') %}
+          <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal"
+                  data-id="{{ s.source_id }}" data-name="{{ s.source_name }}" data-type="{{ s.source_type }}">编辑</button>
+          <form method="post" action="{{ url_for('source.delete_source', source_id=s.source_id) }}"
+                class="d-inline" onsubmit="return confirm('确定删除该机构？')">
+            <button class="btn btn-sm btn-outline-danger">删除</button>
+          </form>
+          {% else %}
+          <span class="text-muted small">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post" id="editForm" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">编辑来源机构</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">来源名称</label>
+          <input name="source_name" id="editName" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">来源类型</label>
+          <input name="source_type" id="editType" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+        <button type="submit" class="btn btn-success">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('editModal').addEventListener('show.bs.modal', e => {
+  const b = e.relatedTarget;
+  document.getElementById('editForm').action = `/sources/${b.dataset.id}/edit`;
+  document.getElementById('editName').value = b.dataset.name;
+  document.getElementById('editType').value = b.dataset.type;
+});
+</script>
+{% endblock %}

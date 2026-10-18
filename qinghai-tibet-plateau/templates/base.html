@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}青藏高原生态保护科普资源数据管理系统{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="d-flex flex-column min-vh-100">
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="{{ url_for('article.index') }}">青藏高原生态科普库</a>
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('article.index') }}">首页</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('article.search') }}">智能检索</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('stats.index') }}">统计图表</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('source.list_sources') }}">来源机构</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">生态专题</a>
+          <ul class="dropdown-menu">
+            {% for t in nav_topics %}
+            <li><a class="dropdown-item" href="{{ url_for('article.index', topic_id=t.topic_id) }}">{{ t.topic_name }}</a></li>
+            {% endfor %}
+          </ul>
+        </li>
+      </ul>
+      <ul class="navbar-nav">
+        {% if session.get('user_id') %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.favorites') }}">我的收藏</a></li>
+        <li class="nav-item"><span class="nav-link disabled">你好，{{ session.get('nickname') }}</span></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">退出</a></li>
+        {% else %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">登录</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.register') }}">注册</a></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container py-4 flex-grow-1">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} alert-dismissible fade show">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="text-center text-muted py-3 border-top small">
+  青藏高原生态保护科普资源数据管理系统 · 数据库课程设计
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}注册 - 青藏高原生态保护科普资源数据管理系统{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title text-center mb-4">用户注册</h5>
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">昵称</label>
+            <input name="nickname" class="form-control" required autofocus>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">密码</label>
+            <input type="password" name="password" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">确认密码</label>
+            <input type="password" name="password2" class="form-control" required>
+          </div>
+          <button class="btn btn-success w-100">注册</button>
+        </form>
+        <p class="text-center small text-muted mt-3 mb-0">
+          已有账号？<a href="{{ url_for('auth.login') }}">去登录</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

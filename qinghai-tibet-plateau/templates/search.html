@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% from "_macros.html" import article_card, pagination %}
+{% block title %}智能检索 - 青藏高原生态保护科普资源数据管理系统{% endblock %}
+{% block content %}
+<h4 class="mb-3">智能检索</h4>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <form method="get" action="{{ url_for('article.search') }}" class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">标题模糊查询</label>
+        <input type="text" class="form-control" name="q" value="{{ request.args.get('q', '') }}"
+               placeholder="如：冰川、亚洲水塔">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">关键词</label>
+        <select class="form-select" name="keyword_id">
+          <option value="">全部</option>
+          {% for k in keywords %}
+          <option value="{{ k.keyword_id }}"
+                  {% if request.args.get('keyword_id', type=int) == k.keyword_id %}selected{% endif %}>
+            {{ k.keyword_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">生态专题</label>
+        <select class="form-select" name="topic_id">
+          <option value="">全部</option>
+          {% for t in topics %}
+          <option value="{{ t.topic_id }}"
+                  {% if request.args.get('topic_id', type=int) == t.topic_id %}selected{% endif %}>
+            {{ t.topic_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">来源机构</label>
+        <select class="form-select" name="source_id">
+          <option value="">全部</option>
+          {% for s in sources %}
+          <option value="{{ s.source_id }}"
+                  {% if request.args.get('source_id', type=int) == s.source_id %}selected{% endif %}>
+            {{ s.source_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">开始日期</label>
+        <input type="date" class="form-control" name="date_from" value="{{ request.args.get('date_from', '') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">结束日期</label>
+        <input type="date" class="form-control" name="date_to" value="{{ request.args.get('date_to', '') }}">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-success w-100">检索</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<p class="text-muted small">共检索到 {{ total }} 篇文章</p>
+
+<div class="row g-3">
+  {% for a in articles %}
+  {{ article_card(a) }}
+  {% else %}
+  <div class="col-12"><div class="alert alert-secondary">没有符合条件的文章，请调整检索条件</div></div>
+  {% endfor %}
+</div>
+
+{{ pagination(total, per_page, page) }}
+{% endblock %}

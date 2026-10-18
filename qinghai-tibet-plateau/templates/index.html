@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_macros.html" import article_card, pagination %}
+{% block content %}
+<div class="hero p-5 mb-4 text-center">
+  <h2 class="fw-bold">青藏高原生态保护科普资源数据管理系统</h2>
+  <p class="mb-4">冰川冻土 · 湖泊湿地 · 草地植被 · 生物多样性 · 气候变化</p>
+  <form class="d-flex justify-content-center" method="get" action="{{ url_for('article.search') }}">
+    <input class="form-control w-50" type="search" name="q" placeholder="输入标题关键词，检索科普文章…">
+    <button class="btn btn-light ms-2" type="submit">检索</button>
+  </form>
+</div>
+
+<div class="mb-3">
+  <a class="btn btn-sm {{ 'btn-success' if not topic_id else 'btn-outline-success' }} me-1 mb-1"
+     href="{{ url_for('article.index') }}">全部</a>
+  {% for t in nav_topics %}
+  <a class="btn btn-sm {{ 'btn-success' if topic_id == t.topic_id else 'btn-outline-success' }} me-1 mb-1"
+     href="{{ url_for('article.index', topic_id=t.topic_id) }}">{{ t.topic_name }}</a>
+  {% endfor %}
+</div>
+
+<p class="text-muted small">共 {{ total }} 篇文章</p>
+
+<div class="row g-3">
+  {% for a in articles %}
+  {{ article_card(a) }}
+  {% else %}
+  <div class="col-12"><div class="alert alert-secondary">暂无文章</div></div>
+  {% endfor %}
+</div>
+
+{{ pagination(total, per_page, page) }}
+{% endblock %}

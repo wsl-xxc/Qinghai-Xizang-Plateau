@@ -1,0 +1,27 @@
+body {
+  background-color: #f5f7f5;
+}
+
+.hero {
+  background: linear-gradient(135deg, #198754, #0dcaf0);
+  color: #fff;
+  border-radius: 1rem;
+}
+
+.article-img {
+  height: 180px;
+  object-fit: cover;
+}
+
+.detail-img {
+  max-height: 320px;
+  object-fit: cover;
+}
+
+.chart {
+  height: 320px;
+}
+
+.chart-lg {
+  height: 480px;
+}

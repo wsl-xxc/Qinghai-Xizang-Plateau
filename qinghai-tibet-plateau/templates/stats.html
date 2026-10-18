@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}统计图表 - 青藏高原生态保护科普资源数据管理系统{% endblock %}
+{% block content %}
+<h4 class="mb-3">统计可视化</h4>
+
+<div class="row g-3 mb-4 text-center">
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="display-6 fw-bold text-success">{{ totals.article }}</div>
+      <div class="text-muted small">科普文章</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="display-6 fw-bold text-success">{{ totals.source }}</div>
+      <div class="text-muted small">来源机构</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="display-6 fw-bold text-success">{{ totals.keyword }}</div>
+      <div class="text-muted small">关键词</div>
+    </div></div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card shadow-sm"><div class="card-body">
+      <div class="display-6 fw-bold text-success">{{ totals.user }}</div>
+      <div class="text-muted small">注册用户</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm"><div class="card-body">
+      <h6>年度发文量</h6><div id="yearChart" class="chart"></div>
+    </div></div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm"><div class="card-body">
+      <h6>来源发文量 TOP10</h6><div id="sourceChart" class="chart"></div>
+    </div></div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm"><div class="card-body">
+      <h6>生态专题分布</h6><div id="topicChart" class="chart"></div>
+    </div></div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow-sm"><div class="card-body">
+      <h6>关键词云</h6><div id="cloudChart" class="chart"></div>
+    </div></div>
+  </div>
+  <div class="col-12">
+    <div class="card shadow-sm"><div class="card-body">
+      <h6>关键词热度 TOP20</h6><div id="kwChart" class="chart chart-lg"></div>
+    </div></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-wordcloud@2.1.0/dist/echarts-wordcloud.min.js"></script>
+<script>
+const byYear = {{ by_year | safe }};
+const bySource = {{ by_source | safe }};
+const byTopic = {{ by_topic | safe }};
+const kwData = {{ keywords | safe }};
+
+// 年度发文量：柱状 + 折线
+echarts.init(document.getElementById('yearChart')).setOption({
+  tooltip: { trigger: 'axis' },
+  xAxis: { type: 'category', data: byYear.map(d => d.y) },
+  yAxis: { type: 'value', minInterval: 1 },
+  series: [
+    { type: 'bar', data: byYear.map(d => d.c), itemStyle: { color: '#198754' } },
+    { type: 'line', data: byYear.map(d => d.c), smooth: true, itemStyle: { color: '#0d6efd' } }
+  ]
+});
+
+// 来源占比：玫瑰图
+echarts.init(document.getElementById('sourceChart')).setOption({
+  tooltip: { trigger: 'item' },
+  series: [{
+    type: 'pie', roseType: 'radius', radius: ['15%', '70%'],
+    data: bySource.map(d => ({ name: d.name, value: d.c })),
+    label: { fontSize: 11 }
+  }]
+});
+
+// 专题分布：饼图
+echarts.init(document.getElementById('topicChart')).setOption({
+  tooltip: { trigger: 'item' },
+  legend: { orient: 'vertical', right: 0, top: 'middle', textStyle: { fontSize: 11 } },
+  series: [{
+    type: 'pie', radius: '65%', center: ['40%', '50%'],
+    data: byTopic.map(d => ({ name: d.name, value: d.c }))
+  }]
+});
+
+// 关键词云（插件加载失败时退化为条形图）
+const cloudEl = document.getElementById('cloudChart');
+try {
+  echarts.init(cloudEl).setOption({
+    series: [{
+      type: 'wordCloud', sizeRange: [14, 46], rotationRange: [-45, 45],
+      width: '100%', height: '100%',
+      textStyle: { color: () => `hsl(${Math.random() * 360}, 60%, 40%)` },
+      data: kwData.map(d => ({ name: d.name, value: d.c }))
+    }]
+  });
+} catch (e) {
+  cloudEl.innerHTML = '<div class="text-muted small">词云组件加载失败，请参考下方热度条形图</div>';
+}
+
+// 关键词热度 TOP20：横向条形图
+const top20 = kwData.slice(0, 20).reverse();
+echarts.init(document.getElementById('kwChart')).setOption({
+  tooltip: {},
+  grid: { left: 100 },
+  xAxis: { type: 'value', minInterval: 1 },
+  yAxis: { type: 'category', data: top20.map(d => d.name) },
+  series: [{ type: 'bar', data: top20.map(d => d.c), itemStyle: { color: '#20c997' } }]
+});
+</script>
+{% endblock %}

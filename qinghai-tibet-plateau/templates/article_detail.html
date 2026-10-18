@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} - 青藏高原生态保护科普资源数据管理系统{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  {% if article.image_url %}
+  <img src="{{ article.image_url }}" class="card-img-top detail-img" alt="" onerror="this.remove()">
+  {% endif %}
+  <div class="card-body">
+    <h3 class="card-title">{{ article.title }}</h3>
+    <div class="text-muted small mb-3">
+      {% if article.source_name %}来源：{{ article.source_name }}（{{ article.source_type }}） · {% endif %}
+      {% if article.topic_name %}专题：{{ article.topic_name }} · {% endif %}
+      {% if article.publish_date %}发布于 {{ article.publish_date }}{% endif %}
+    </div>
+    {% if keywords %}
+    <div class="mb-3">
+      {% for k in keywords %}
+      <a class="badge bg-light text-secondary text-decoration-none border me-1"
+         href="{{ url_for('article.search', keyword_id=k.keyword_id) }}">{{ k.keyword_name }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if article.summary %}
+    <p class="card-text" style="white-space: pre-wrap;">{{ article.summary }}</p>
+    {% endif %}
+    <div class="d-flex gap-2 mt-4">
+      <a href="{{ article.url }}" target="_blank" rel="noopener" class="btn btn-success">阅读原文</a>
+      {% if session.get('user_id') %}
+      <form method="post" action="{{ url_for('auth.toggle_favorite', article_id=article.article_id) }}">
+        <button class="btn {{ 'btn-danger' if is_fav else 'btn-outline-danger' }}">
+          {{ '取消收藏' if is_fav else '收藏' }}
+        </button>
+      </form>
+      {% else %}
+      <a href="{{ url_for('auth.login') }}" class="btn btn-outline-danger">登录后收藏</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
