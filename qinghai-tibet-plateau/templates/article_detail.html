@@ -35,6 +35,28 @@
       <a href="{{ url_for('auth.login') }}" class="btn btn-outline-danger">登录后收藏</a>
       {% endif %}
     </div>
+
+    {% if recommendations %}
+    <div class="mt-4 pt-3 border-top">
+      <h6 class="text-success mb-3">
+        相关文章推荐
+        <span class="text-muted small fw-normal">（基于 TF-IDF 文本相似度算法自动匹配）</span>
+      </h6>
+      <div class="row g-3">
+        {% for r in recommendations %}
+        <div class="col-md-3 col-6">
+          <a class="d-block h-100 p-2 border rounded text-decoration-none text-dark recommend-card"
+             href="{{ url_for('article.detail', article_id=r.article_id) }}">
+            <div class="small fw-bold">{{ r.title }}</div>
+            <div class="text-muted" style="font-size:.75rem;">
+              {% if r.topic_name %}{{ r.topic_name }} · {% endif %}相似度 {{ '%.0f' | format(r.score * 100) }}%
+            </div>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

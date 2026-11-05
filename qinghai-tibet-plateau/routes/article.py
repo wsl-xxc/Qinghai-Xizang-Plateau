@@ -1,6 +1,7 @@
 from flask import (Blueprint, abort, render_template, request, session)
 
 from db import get_db
+from nlp import similar_articles
 
 bp = Blueprint("article", __name__)
 
@@ -150,6 +151,56 @@ def detail(article_id):
         cur.execute("SELECT 1 FROM `favorite` WHERE user_id = %s AND article_id = %s",
                     (uid, article_id))
         is_fav = cur.fetchone() is not None
+
+    # 相似文章推荐：TF-IDF 向量化 + 余弦相似度，取最相似的前 4 篇
+    cur.execute(
+        """SELECT a.article_id, a.title, a.summary,
+                  GROUP_CONCAT(k.keyword_name SEPARATOR ' ') AS kws
+           FROM `article` a
+           LEFT JOIN `article_keyword` ak ON ak.article_id = a.article_id
+           LEFT JOIN `keyword` k ON ak.keyword_id = k.keyword_id
+           GROUP BY a.article_id, a.title, a.summary"""
+    )
+    corpus = []
+    for r in cur.fetchall():
+        if r["article_id"] == article_id:
+            continue
+        corpus.append({
+            "article_id": r["article_id"],
+            "title": r["title"],
+            "summary": r["summary"],
+            "keywords": (r["kws"] or "").split(),
+        })
     cur.close()
+
+    target = {
+        "article_id": article_id,
+        "title": article["title"],
+        "summary": article["summary"],
+        "keywords": [k["keyword_name"] for k in keywords],
+    }
+    scored = similar_articles(target, corpus, top_n=4)
+    recommendations = []
+    if scored:
+        cur = get_db().cursor()
+        ids = [sid for sid, _ in scored]
+        placeholders = ",".join(["%s"] * len(ids))
+        cur.execute(
+            f"""SELECT a.article_id, a.title, a.image_url, a.publish_date,
+                       t.topic_name
+                FROM `article` a
+                LEFT JOIN `topic` t ON a.topic_id = t.topic_id
+                WHERE a.article_id IN ({placeholders})""",
+            ids,
+        )
+        info = {r["article_id"]: r for r in cur.fetchall()}
+        cur.close()
+        for sid, score in scored:
+            if sid in info:
+                row = dict(info[sid])
+                row["score"] = score
+                recommendations.append(row)
+
     return render_template("article_detail.html", article=article,
-                           keywords=keywords, is_fav=is_fav)
+                           keywords=keywords, is_fav=is_fav,
+                           recommendations=recommendations)

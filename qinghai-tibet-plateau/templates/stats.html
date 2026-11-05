@@ -33,7 +33,12 @@
 <div class="row g-3">
   <div class="col-md-6">
     <div class="card shadow-sm"><div class="card-body">
-      <h6>年度发文量</h6><div id="yearChart" class="chart"></div>
+      <h6>年度发文量与趋势预测
+        {% if trend_r2 is not none %}
+        <span class="text-muted small fw-normal">（线性回归预测 {{ trend_future_years | join('、') }} 年，R²={{ '%.3f' | format(trend_r2) }}）</span>
+        {% endif %}
+      </h6>
+      <div id="yearChart" class="chart"></div>
     </div></div>
   </div>
   <div class="col-md-6">
@@ -67,14 +72,20 @@ const byYear = {{ by_year | safe }};
 const bySource = {{ by_source | safe }};
 const byTopic = {{ by_topic | safe }};
 const kwData = {{ keywords | safe }};
+const trendX = {{ trend_x | safe }};
+const trendActual = {{ trend_actual | safe }};
+const trendPred = {{ trend_pred | safe }};
 
 echarts.init(document.getElementById('yearChart')).setOption({
   tooltip: { trigger: 'axis' },
-  xAxis: { type: 'category', data: byYear.map(d => d.y) },
+  legend: { data: ['实际发文量', '预测发文量'], textStyle: { fontSize: 11 } },
+  xAxis: { type: 'category', data: trendX },
   yAxis: { type: 'value', minInterval: 1 },
   series: [
-    { type: 'bar', data: byYear.map(d => d.c), itemStyle: { color: '#198754' } },
-    { type: 'line', data: byYear.map(d => d.c), smooth: true, itemStyle: { color: '#0d6efd' } }
+    { name: '实际发文量', type: 'bar', data: trendActual, itemStyle: { color: '#198754' } },
+    { name: '实际发文量', type: 'line', data: trendActual, smooth: true, itemStyle: { color: '#0d6efd' } },
+    { name: '预测发文量', type: 'line', data: trendPred, smooth: true,
+      lineStyle: { type: 'dashed', width: 2 }, itemStyle: { color: '#fd7e14' } }
   ]
 });
 

@@ -25,3 +25,13 @@ body {
 .chart-lg {
   height: 480px;
 }
+
+.recommend-card {
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.recommend-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 .25rem .75rem rgba(25, 135, 84, .15);
+  border-color: #198754 !important;
+}
