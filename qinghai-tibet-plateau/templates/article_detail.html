@@ -40,7 +40,9 @@
     <div class="mt-4 pt-3 border-top">
       <h6 class="text-success mb-3">
         相关文章推荐
-        <span class="text-muted small fw-normal">（基于 TF-IDF 文本相似度算法自动匹配）</span>
+        <span class="text-muted small fw-normal">
+          （基于 {% if recommend_engine == 'bert' %}BERT 语义向量{% else %}TF-IDF 文本相似度{% endif %}算法自动匹配）
+        </span>
       </h6>
       <div class="row g-3">
         {% for r in recommendations %}

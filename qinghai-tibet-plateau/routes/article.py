@@ -1,7 +1,11 @@
 from flask import (Blueprint, abort, render_template, request, session)
 
+import json
+
+import numpy as np
+
 from db import get_db
-from nlp import similar_articles
+from nlp import similar_articles, similar_by_vector
 
 bp = Blueprint("article", __name__)
 
@@ -41,6 +45,33 @@ def _attach_keywords(articles):
     cur.close()
     for a in articles:
         a["keywords"] = mapping.get(a["article_id"], [])
+
+
+def _semantic_recommend(article_id, top_n=4):
+    """读取 article_vector 做语义推荐。
+
+    向量表不存在、文章缺向量或模型不可用时返回 None，由调用方回退 TF-IDF。
+    """
+    try:
+        cur = get_db().cursor()
+        cur.execute("SELECT article_id, vector FROM article_vector")
+        rows = cur.fetchall()
+        cur.close()
+        own, others = None, {}
+        for row in rows:
+            vec = np.asarray(json.loads(row["vector"]), dtype=np.float32)
+            if row["article_id"] == article_id:
+                own = vec
+            else:
+                others[row["article_id"]] = vec
+        if own is None or not others:
+            return None
+        ids = list(others.keys())
+        mat = np.vstack([others[i] for i in ids])
+        return similar_by_vector(own, ids, mat, top_n=top_n)
+    except Exception:
+        # 回退边界：向量表缺失、模型未下载、数据库异常都走 TF-IDF
+        return None
 
 
 def _query_articles(title=None, keyword_id=None, source_id=None, topic_id=None,
@@ -152,34 +183,39 @@ def detail(article_id):
                     (uid, article_id))
         is_fav = cur.fetchone() is not None
 
-    # 相似文章推荐：TF-IDF 向量化 + 余弦相似度，取最相似的前 4 篇
-    cur.execute(
-        """SELECT a.article_id, a.title, a.summary,
-                  GROUP_CONCAT(k.keyword_name SEPARATOR ' ') AS kws
-           FROM `article` a
-           LEFT JOIN `article_keyword` ak ON ak.article_id = a.article_id
-           LEFT JOIN `keyword` k ON ak.keyword_id = k.keyword_id
-           GROUP BY a.article_id, a.title, a.summary"""
-    )
-    corpus = []
-    for r in cur.fetchall():
-        if r["article_id"] == article_id:
-            continue
-        corpus.append({
-            "article_id": r["article_id"],
-            "title": r["title"],
-            "summary": r["summary"],
-            "keywords": (r["kws"] or "").split(),
-        })
-    cur.close()
-
     target = {
         "article_id": article_id,
         "title": article["title"],
         "summary": article["summary"],
         "keywords": [k["keyword_name"] for k in keywords],
     }
-    scored = similar_articles(target, corpus, top_n=4)
+
+    # 相似文章推荐：优先 BERT 语义向量，向量不可用时回退 TF-IDF
+    scored = _semantic_recommend(article_id)
+    engine = "bert"
+    if scored is None:
+        engine = "tfidf"
+        cur.execute(
+            """SELECT a.article_id, a.title, a.summary,
+                      GROUP_CONCAT(k.keyword_name SEPARATOR ' ') AS kws
+               FROM `article` a
+               LEFT JOIN `article_keyword` ak ON ak.article_id = a.article_id
+               LEFT JOIN `keyword` k ON ak.keyword_id = k.keyword_id
+               GROUP BY a.article_id, a.title, a.summary"""
+        )
+        corpus = []
+        for r in cur.fetchall():
+            if r["article_id"] == article_id:
+                continue
+            corpus.append({
+                "article_id": r["article_id"],
+                "title": r["title"],
+                "summary": r["summary"],
+                "keywords": (r["kws"] or "").split(),
+            })
+        scored = similar_articles(target, corpus, top_n=4)
+    cur.close()
+
     recommendations = []
     if scored:
         cur = get_db().cursor()
@@ -203,4 +239,5 @@ def detail(article_id):
 
     return render_template("article_detail.html", article=article,
                            keywords=keywords, is_fav=is_fav,
-                           recommendations=recommendations)
+                           recommendations=recommendations,
+                           recommend_engine=engine)
